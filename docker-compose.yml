@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres-quality
+    environment:
+      POSTGRES_DB: qualitydb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - '5432:5432'
+    networks:
+      - quality-network
+
+  app:
+    build: .
+    container_name: qualitydemo-app
+    ports:
+      - '8080:8080'
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/qualitydb
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
+    networks:
+      - quality-network
+
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: sonarqube
+    ports:
+      - '9000:9000'
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: 'true'
+    networks:
+      - quality-network
+
+networks:
+  quality-network:
+    driver: bridge
